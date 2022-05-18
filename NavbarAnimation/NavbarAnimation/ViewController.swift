@@ -14,8 +14,25 @@ class ViewController: UIViewController {
         "after": 200.0
     ]
     
+    let FOOD_IMG:[Food] = [
+        Food(name: "Oreos", img: "oreos"),
+        Food(name: "Pizza Pockets",img:"pizza_pockets"),
+        Food(name: "Pop Tarts", img:"pop_tarts"),
+        Food(name: "Popsicle", img: "popsicle"),
+        Food(name: "Ramen", img:"ramen")
+    ]
+    
+    var foodList:[Food] = []
+    
     let imgStackView: UIStackView = {
         let main = UIStackView()
+        main.translatesAutoresizingMaskIntoConstraints = false
+        return main
+    }()
+    
+    let tableView: UITableView = {
+        let main = UITableView()
+        main.register(CustomTableViewCell.self, forCellReuseIdentifier: CustomTableViewCell.identifier)
         main.translatesAutoresizingMaskIntoConstraints = false
         return main
     }()
@@ -23,14 +40,13 @@ class ViewController: UIViewController {
     var isOpen = false
     
     @IBOutlet var navBar: UIView!
-    
     @IBOutlet var plusButton: UIButton!
     @IBOutlet var navBarHeightConstraint: NSLayoutConstraint!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         addStackView()
-        
+        addTableView()
     }
     
     func addStackView() {
@@ -42,6 +58,7 @@ class ViewController: UIViewController {
         imgStackView.isHidden = true
         imgStackView.spacing = 20
         
+        
         NSLayoutConstraint.activate([
             imgStackView.heightAnchor.constraint(equalToConstant: NAVBAR_HEIGHT["after"]! - NAVBAR_HEIGHT["before"]!),
             imgStackView.widthAnchor.constraint(equalTo: navBar.widthAnchor),
@@ -50,46 +67,43 @@ class ViewController: UIViewController {
         ])
         
         // add image
-        let img1 = UIImageView(image: UIImage(named: "oreos"))
-        let img2 = UIImageView(image: UIImage(named: "pizza_pockets"))
-        let img3 = UIImageView(image: UIImage(named: "pop_tarts"))
-        let img4 = UIImageView(image: UIImage(named: "popsicle"))
-        let img5 = UIImageView(image: UIImage(named: "ramen"))
-        
-        img1.contentMode = .scaleAspectFit
-        img2.contentMode = .scaleAspectFit
-        img3.contentMode = .scaleAspectFit
-        img4.contentMode = .scaleAspectFit
-        img5.contentMode = .scaleAspectFit
-        
-        imgStackView.addArrangedSubview(img1)
-        imgStackView.addArrangedSubview(img2)
-        imgStackView.addArrangedSubview(img3)
-        imgStackView.addArrangedSubview(img4)
-        imgStackView.addArrangedSubview(img5)
+        var idx = 0
+        FOOD_IMG.map{(food: Food) -> Food in
+            let btn = UIButton()
+            btn.tag = idx
+            btn.setImage(UIImage(named: food.img), for: .normal)
+            
+            btn.addTarget(self, action: #selector(imgTapped), for: .touchUpInside)
+            
+            imgStackView.addArrangedSubview(btn)
+            idx+=1
+            return food
+        }
     }
     
+    @objc func imgTapped(sender:UIButton!) {
+        let food = FOOD_IMG[sender.tag]
+        
+        foodList.insert(food, at: 0)
+        tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
+    }
     
-//    func addImageView() {
-//        var imageView : UIImageView
-//           imageView  = UIImageView(frame:CGRectMake(10, 50, 100, 300));
-//           imageView.image = UIImage(named:"image.jpg")
-//           self.view.addSubview(imageView)
-//    }
-//
+    func addTableView(){
+        tableView.delegate = self
+        tableView.dataSource = self
+        view.addSubview(tableView)
+
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: navBar.bottomAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+    }
     
-//    private func subStackView() -> UIStackView {
-//        imgStackView.addArrangedSubview([UIView(), UIView()])
-//
-//
-//            NSLayoutConstraint.activate([
-//                    sv.centerXAnchor.constraint(equalTo: view.centerXAnchor ),
-//                    sv.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-//              ])
-//
-//            return sv
-//        }
-    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+    }
     
     @IBAction func plusPressed(_ sender: UIButton) {
         UIView.animate(withDuration: 1.0, delay: 0.0, usingSpringWithDamping: 0.4 ,initialSpringVelocity: 0.2, animations: {
@@ -116,6 +130,30 @@ class ViewController: UIViewController {
     private func navBarHeightAnimation(height: CGFloat) {
         self.navBarHeightConstraint.constant += height
     }
-    
 }
 
+extension ViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("tapped")
+    }
+}
+
+extension ViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return foodList.count + 100
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: CustomTableViewCell.identifier, for: indexPath)
+        
+        if indexPath.row >= foodList.count {
+            return cell
+        }
+        
+        let food = foodList[indexPath.row]
+        cell.textLabel?.text = food.name
+        
+        return cell;
+    }
+    
+}
