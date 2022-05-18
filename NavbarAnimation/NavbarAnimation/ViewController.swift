@@ -37,6 +37,14 @@ class ViewController: UIViewController {
         return main
     }()
     
+    let titleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "SNACKS"
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        return label
+    }()
+    
     var isOpen = false
     
     @IBOutlet var navBar: UIView!
@@ -45,11 +53,12 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        addTitle()
         addStackView()
         addTableView()
     }
     
-    func addStackView() {
+    private func addStackView() {
         navBar.addSubview(imgStackView)
         
         // set constraints
@@ -81,14 +90,14 @@ class ViewController: UIViewController {
         }
     }
     
-    @objc func imgTapped(sender:UIButton!) {
+    @objc private func imgTapped(sender:UIButton!) {
         let food = FOOD_IMG[sender.tag]
         
         foodList.insert(food, at: 0)
         tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
     }
     
-    func addTableView(){
+    private func addTableView(){
         tableView.delegate = self
         tableView.dataSource = self
         view.addSubview(tableView)
@@ -115,11 +124,33 @@ class ViewController: UIViewController {
                 self.plusBtnAnimation(degree: -1 * .pi/4)
             }
             
+            
             self.isOpen = !self.isOpen
+            self.changeTitle()
             self.imgStackView.isHidden = !self.imgStackView.isHidden
             self.view.layoutIfNeeded()
         }
         )
+    }
+    
+    private func changeTitle(){
+        if isOpen {
+            titleLabel.text = "Add a SNACK"
+        } else {
+            titleLabel.text = "SNACKS"
+        }
+    }
+    
+    private func addTitle() {
+        navBar.addSubview(titleLabel)
+        
+        let xConstraint = titleLabel.centerXAnchor.constraint(equalTo: navBar.centerXAnchor)
+        let yConstraint = titleLabel.centerYAnchor.constraint(equalTo: navBar.centerYAnchor)
+        yConstraint.identifier = "centerYSnackTitle"
+        
+        NSLayoutConstraint.activate([
+            xConstraint , yConstraint
+        ])
     }
     
     private func plusBtnAnimation(degree: CGFloat) {
